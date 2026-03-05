@@ -450,12 +450,12 @@ def build_gauge(value: float, label: str, T: dict) -> go.Figure:
         gauge={
             "axis": {
                 "range": [0, 1.75],
-                "tickvals": [0, 0.5, 0.75, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75],
-                "ticktext": ["0", "0.5", "0.75", "0.9", "1.0", "1.1", "1.25", "1.5", "1.75"],
+                "tickmode": "array",
+                "tickvals": [0, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75],
+                "ticktext": ["0", "0.5", "0.75", "1.0", "1.25", "1.5", "1.75"],
                 "tickfont": {"size": 9, "color": T["text_secondary"]},
-                "linecolor": T["border"],
-                "linewidth": 1,
-                "gridcolor": T["border"],
+                "tickcolor": T["border"],
+                "tickwidth": 1,
             },
             "bar":      {"color": needle, "thickness": 0.18},
             "bgcolor":  T["gauge_bg"],

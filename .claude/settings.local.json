@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /d/Coding/PMI && python -c \"\nimport plotly.graph_objects as go\n\nfig = go.Figure\\(go.Indicator\\(\n    mode='gauge+number+delta',\n    value=0.935,\n    delta={'reference': 1.0, 'valueformat': '.3f',\n           'increasing': {'color': '#4ade80'}, 'decreasing': {'color': '#f87171'}},\n    number={'valueformat': '.3f', 'font': {'size': 38, 'color': '#f87171'}},\n    title={'text': '<b>CPI</b>', 'font': {'size': 13, 'color': '#7a8499'}},\n    gauge={\n        'axis': {\n            'range': [0, 1.75],\n            'tickmode': 'array',\n            'tickvals': [0, 0.5, 0.75, 1.0, 1.25, 1.5, 1.75],\n            'ticktext': ['0', '0.5', '0.75', '1.0', '1.25', '1.5', '1.75'],\n            'tickfont': {'size': 9, 'color': '#7a8499'},\n            'tickcolor': '#252d3d',\n            'tickwidth': 1,\n        },\n        'bar': {'color': '#f87171', 'thickness': 0.18},\n        'bgcolor': '#161b27',\n        'borderwidth': 0,\n        'steps': [\n            {'range': [0.00, 0.75], 'color': 'rgba\\(248,113,113,0.20\\)'},\n            {'range': [0.75, 0.90], 'color': 'rgba\\(251,191,36,0.18\\)'},\n            {'range': [0.90, 1.00], 'color': 'rgba\\(251,191,36,0.10\\)'},\n            {'range': [1.00, 1.25], 'color': 'rgba\\(74,222,128,0.16\\)'},\n            {'range': [1.25, 1.75], 'color': 'rgba\\(74,222,128,0.28\\)'},\n        ],\n        'threshold': {'line': {'color': '#7aa2f7', 'width': 2.5}, 'thickness': 0.82, 'value': 1.0},\n    },\n\\)\\)\nfig.update_layout\\(paper_bgcolor='#161b27', height=260, margin=dict\\(l=24,r=24,t=50,b=16\\)\\)\nprint\\('Gauge OK — plotly', __import__\\('plotly'\\).__version__\\)\n\" 2>&1)",
+      "Bash(cd:*)"
+    ]
+  }
+}
