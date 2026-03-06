@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar Panel Calculator - Lahore (Off-Grid)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-12 px-4">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900">Solar Panel Calculator</h1>
+            <p class="mt-2 text-slate-500">Off-Grid System Design for Lahore, Pakistan</p>
+        </div>
+
+        <!-- Location Info -->
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-6">
+            <div class="flex items-start gap-3">
+                <div class="text-amber-600 mt-1">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-amber-900">Lahore, Pakistan Parameters</h3>
+                    <div class="text-xs text-amber-800 mt-1 grid grid-cols-2 gap-2">
+                        <span>Avg. Sun Hours: <strong>5.5 hrs/day</strong></span>
+                        <span>Latitude: <strong>31.5°N</strong></span>
+                        <span>Solar Irradiance: <strong>5.2 kWh/m²/day</strong></span>
+                        <span>Avg. Temperature: <strong>25°C</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Section -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2">Energy Consumption</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="monthlyUsage" class="block text-sm font-medium text-slate-700">Monthly Usage (kWh)</label>
+                    <input type="number" id="monthlyUsage" value="2400" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+                <div>
+                    <label for="daysInMonth" class="block text-sm font-medium text-slate-700">Days in Month</label>
+                    <input type="number" id="daysInMonth" value="30" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+            </div>
+
+            <h2 class="text-lg font-bold text-slate-800 mb-4 border-b pb-2 mt-6">System Configuration</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="sunHours" class="block text-sm font-medium text-slate-700">Avg. Sun Hours/Day</label>
+                    <input type="number" id="sunHours" value="5.5" step="0.1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+                <div>
+                    <label for="systemLoss" class="block text-sm font-medium text-slate-700">System Loss (%)</label>
+                    <input type="number" id="systemLoss" value="20" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+                <div>
+                    <label for="autonomyDays" class="block text-sm font-medium text-slate-700">Battery Autonomy (Days)</label>
+                    <input type="number" id="autonomyDays" value="1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+                <div>
+                    <label for="batteryDOD" class="block text-sm font-medium text-slate-700">Battery DOD (%)</label>
+                    <input type="number" id="batteryDOD" value="50" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+                <div>
+                    <label for="batteryVoltage" class="block text-sm font-medium text-slate-700">Battery Voltage (V)</label>
+                    <select id="batteryVoltage" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                        <option value="12">12V</option>
+                        <option value="24">24V</option>
+                        <option value="48" selected>48V</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="inverterEff" class="block text-sm font-medium text-slate-700">Inverter Efficiency (%)</label>
+                    <input type="number" id="inverterEff" value="95" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border">
+                </div>
+            </div>
+
+            <button onclick="calculate()" class="mt-6 w-full bg-indigo-600 text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition-colors font-bold shadow-md">
+                Calculate System Requirements
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div id="results" class="hidden">
+            <!-- Daily Stats -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl border border-slate-200 text-center">
+                    <p class="text-xs font-bold text-slate-500 uppercase">Daily Consumption</p>
+                    <p id="dailyConsumption" class="text-2xl font-bold text-slate-900 mt-1">0 kWh</p>
+                </div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 text-center">
+                    <p class="text-xs font-bold text-slate-500 uppercase">Daily Consumption (with losses)</p>
+                    <p id="dailyWithLosses" class="text-2xl font-bold text-indigo-600 mt-1">0 kWh</p>
+                </div>
+            </div>
+
+            <!-- Main Results -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-amber-400 to-amber-500 p-5 rounded-xl text-white shadow-lg">
+                    <p class="text-xs font-bold opacity-90 uppercase">Solar Panel Capacity</p>
+                    <p id="solarCapacity" class="text-3xl font-black mt-1">0 W</p>
+                    <p id="solarCapacityKWP" class="text-sm opacity-80 mt-1">0 kWp</p>
+                </div>
+                <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-xl text-white shadow-lg">
+                    <p class="text-xs font-bold opacity-90 uppercase">Battery Capacity</p>
+                    <p id="batteryCapacity" class="text-3xl font-black mt-1">0 Ah</p>
+                    <p id="batteryCapacityKWH" class="text-sm opacity-80 mt-1">0 kWh</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-5 rounded-xl text-white shadow-lg">
+                    <p class="text-xs font-bold opacity-90 uppercase">Inverter Size</p>
+                    <p id="inverterSize" class="text-3xl font-black mt-1">0 W</p>
+                    <p id="inverterSizeKVA" class="text-sm opacity-80 mt-1">0 kVA</p>
+                </div>
+            </div>
+
+            <!-- Panel Details -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 mb-6">
+                <h3 class="font-bold text-slate-800 mb-4">Panel Configuration</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Recommended Panel Size</span>
+                        <span id="panelSize" class="font-semibold text-slate-900">550W</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Number of Panels</span>
+                        <span id="numPanels" class="font-semibold text-slate-900">0</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Panel Arrangement</span>
+                        <span id="panelArrangement" class="font-semibold text-slate-900">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Roof Space Required</span>
+                        <span id="roofSpace" class="font-semibold text-slate-900">0 m²</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battery Details -->
+            <div class="bg-white p-5 rounded-xl border border-slate-200 mb-6">
+                <h3 class="font-bold text-slate-800 mb-4">Battery Configuration</h3>
+                <div class="space-y-3 text-sm">
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Battery Type</span>
+                        <span class="font-semibold text-slate-900">LiFePO4 (Lithium)</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Required Battery Strings</span>
+                        <span id="numStrings" class="font-semibold text-slate-900">0</span>
+                    </div>
+                    <div class="flex justify-between border-b border-slate-100 pb-2">
+                        <span class="text-slate-600">Batteries per String</span>
+                        <span id="batteriesPerString" class="font-semibold text-slate-900">0</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-600">Total Batteries</span>
+                        <span id="totalBatteries" class="font-semibold text-slate-900">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Estimation -->
+            <div class="bg-slate-800 p-5 rounded-xl text-white">
+                <h3 class="font-bold mb-4">Estimated Cost Range (PKR)</h3>
+                <div class="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-xs opacity-70">Low Estimate</p>
+                        <p id="costLow" class="text-xl font-bold text-emerald-400">₨0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">Medium Estimate</p>
+                        <p id="costMedium" class="text-xl font-bold">₨0</p>
+                    </div>
+                    <div>
+                        <p class="text-xs opacity-70">High Estimate</p>
+                        <p id="costHigh" class="text-xl font-bold text-amber-400">₨0</p>
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-4 text-center">* Costs are estimates and vary by brand, location, and installation</p>
+            </div>
+        </div>
+
+        <!-- Formula Explanation -->
+        <div class="mt-6 bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+            <h3 class="font-bold text-slate-800 mb-2">Calculation Method</h3>
+            <div class="text-xs space-y-1">
+                <p>• Daily Energy = Monthly Usage / Days</p>
+                <p>• Required Solar = Daily Energy / (Sun Hours × (1 - System Loss))</p>
+                <p>• Battery Capacity = (Daily Energy × Autonomy Days) / (Battery DOD × Inverter Efficiency)</p>
+                <p>• Inverter Size = Daily Energy / Sun Hours × 1.25 (safety factor)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Default values
+        const defaults = {
+            monthlyUsage: 2400,
+            daysInMonth: 30,
+            sunHours: 5.5,
+            systemLoss: 20,
+            autonomyDays: 1,
+            batteryDOD: 50,
+            batteryVoltage: 48,
+            inverterEff: 95
+        };
+
+        // Set default values on load
+        Object.keys(defaults).forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.value = defaults[id];
+        });
+
+        function calculate() {
+            // Get inputs
+            const monthlyUsage = parseFloat(document.getElementById('monthlyUsage').value) || 0;
+            const daysInMonth = parseFloat(document.getElementById('daysInMonth').value) || 30;
+            const sunHours = parseFloat(document.getElementById('sunHours').value) || 5.5;
+            const systemLoss = parseFloat(document.getElementById('systemLoss').value) || 20;
+            const autonomyDays = parseFloat(document.getElementById('autonomyDays').value) || 1;
+            const batteryDOD = parseFloat(document.getElementById('batteryDOD').value) || 50;
+            const batteryVoltage = parseFloat(document.getElementById('batteryVoltage').value) || 48;
+            const inverterEff = parseFloat(document.getElementById('inverterEff').value) || 95;
+
+            // Calculate daily consumption
+            const dailyConsumption = monthlyUsage / daysInMonth;
+            const dailyWithLosses = dailyConsumption * (1 + systemLoss / 100);
+
+            // Solar Panel Calculation
+            const requiredSolar = dailyWithLosses / sunHours;
+            const solarCapacityW = requiredSolar * 1000; // Convert kW to W
+            const solarCapacityKWP = requiredSolar;
+
+            // Battery Calculation
+            const batteryEnergyKWH = (dailyConsumption * autonomyDays) / (batteryDOD / 100 * inverterEff / 100);
+            const batteryAh = (batteryEnergyKWH * 1000) / batteryVoltage;
+
+            // Inverter Calculation
+            const inverterW = (dailyConsumption / sunHours) * 1.25 * 1000;
+            const inverterKVA = inverterW / 1000;
+
+            // Panel configuration (assuming 550W panels)
+            const panelWattage = 550;
+            const numPanels = Math.ceil(solarCapacityW / panelWattage);
+            const actualPanelW = numPanels * panelWattage / 1000;
+            
+            // Panel arrangement (assuming 48V system, panels ~20Amp)
+            const panelsPerString = Math.floor(batteryVoltage / 0.8 / 45) || 1; // Simplified
+            const numStrings = Math.ceil(numPanels / panelsPerString);
+            const panelArrangement = `${numStrings}S × ${panelsPerString}P`;
+
+            // Roof space (each 550W panel ~2.2 m²)
+            const roofSpace = numPanels * 2.2;
+
+            // Battery configuration
+            // Assuming 48V 100Ah LiFePO4 battery = 4.8 kWh
+            const batteryModelAh = 100;
+            const batteriesPerString = Math.ceil((batteryEnergyKWH * 1000) / (batteryModelAh * batteryVoltage) * 100 / batteryDOD);
+            const totalBatteryStrings = Math.ceil(batteriesPerString / 4) || 1;
+            const totalBatteries = totalBatteryStrings * batteriesPerString;
+
+            // Cost estimation (PKR)
+            const solarCostPerWatt = 45; // PKR per watt
+            const batteryCostPerKwh = 35000; // PKR per kWh for LiFePO4
+            const inverterCostPerWatt = 80; // PKR per watt
+
+            const solarCost = actualPanelW * solarCostPerWatt * 1000;
+            const batteryCost = batteryEnergyKWH * batteryCostPerKwh;
+            const inverterCost = inverterW * inverterCostPerWatt;
+            const totalCost = solarCost + batteryCost + inverterCost;
+            const installationCost = totalCost * 0.15;
+            const grandTotal = totalCost + installationCost;
+
+            const costLow = grandTotal * 0.85;
+            const costMedium = grandTotal;
+            const costHigh = grandTotal * 1.2;
+
+            // Update UI
+            document.getElementById('dailyConsumption').textContent = dailyConsumption.toFixed(1) + ' kWh';
+            document.getElementById('dailyWithLosses').textContent = dailyWithLosses.toFixed(1) + ' kWh';
+            
+            document.getElementById('solarCapacity').textContent = Math.round(solarCapacityW).toLocaleString() + ' W';
+            document.getElementById('solarCapacityKWP').textContent = solarCapacityKWP.toFixed(2) + ' kWp';
+            
+            document.getElementById('batteryCapacity').textContent = Math.round(batteryAh).toLocaleString() + ' Ah';
+            document.getElementById('batteryCapacityKWH').textContent = batteryEnergyKWH.toFixed(2) + ' kWh';
+            
+            document.getElementById('inverterSize').textContent = Math.round(inverterW).toLocaleString() + ' W';
+            document.getElementById('inverterSizeKVA').textContent = inverterKVA.toFixed(1) + ' kVA';
+
+            document.getElementById('panelSize').textContent = panelWattage + 'W';
+            document.getElementById('numPanels').textContent = numPanels;
+            document.getElementById('panelArrangement').textContent = panelArrangement;
+            document.getElementById('roofSpace').textContent = roofSpace.toFixed(1) + ' m²';
+
+            document.getElementById('numStrings').textContent = totalBatteryStrings;
+            document.getElementById('batteriesPerString').textContent = batteriesPerString;
+            document.getElementById('totalBatteries').textContent = totalBatteryStrings * batteriesPerString;
+
+            document.getElementById('costLow').textContent = '₨' + Math.round(costLow).toLocaleString();
+            document.getElementById('costMedium').textContent = '₨' + Math.round(costMedium).toLocaleString();
+            document.getElementById('costHigh').textContent = '₨' + Math.round(costHigh).toLocaleString();
+
+            document.getElementById('results').classList.remove('hidden');
+        }
+
+        // Calculate on load
+        calculate();
+    </script>
+</body>
+</html>

@@ -739,6 +739,68 @@ metrics = compute_evm(df)
 
 
 # ─────────────────────────────────────────────
+# ── BANNER: PMI Lahore Symposium 2026 ──
+# ─────────────────────────────────────────────
+st.markdown(
+    """
+    <div style="
+        background: linear-gradient(135deg, #0d2247 0%, #1a3a6b 50%, #0d2247 100%);
+        border: 1px solid #2e5fa3;
+        border-radius: 14px;
+        padding: 14px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+        position: relative;
+        overflow: hidden;
+    ">
+        <div style="
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, rgba(240,165,0,.12) 0%, rgba(240,165,0,0) 50%);
+            pointer-events: none;
+        "></div>
+        <div style="
+            position: absolute; top: 0; right: 0; bottom: 0; width: 4px;
+            background: linear-gradient(180deg, #f0a500, #e07b00);
+            border-radius: 0 14px 14px 0;
+        "></div>
+        <div style="display:flex;align-items:center;gap:18px;position:relative;">
+            <div style="font-size:2.2rem;line-height:1;">🏆</div>
+            <div>
+                <div style="
+                    font-size:.62rem; font-weight:700; letter-spacing:.18em;
+                    text-transform:uppercase; color:#f0a500; margin-bottom:3px;
+                ">PMI Lahore Chapter · Official Symposium</div>
+                <div style="
+                    font-size:1.25rem; font-weight:900; color:#ffffff;
+                    letter-spacing:.03em; line-height:1.1;
+                ">PMI Lahore Symposium 2026</div>
+                <div style="font-size:.75rem;color:rgba(255,255,255,.55);margin-top:3px;">
+                    Project Management Institute · Advancing the Practice of Project Management
+                </div>
+            </div>
+        </div>
+        <div style="text-align:right;position:relative;">
+            <div style="
+                display:inline-block;
+                background:rgba(240,165,0,.15);
+                border:1px solid rgba(240,165,0,.35);
+                border-radius:20px;
+                padding:5px 16px;
+                font-size:.72rem;
+                font-weight:700;
+                letter-spacing:.1em;
+                text-transform:uppercase;
+                color:#f0a500;
+            ">EVM Live Demo</div>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+# ─────────────────────────────────────────────
 # ── HEADER: Title + Health Badge ──
 # ─────────────────────────────────────────────
 col_title, col_badge = st.columns([1, 1.6])

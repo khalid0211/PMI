@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earned Value Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: translateY(-2px);
+        }
+        .tab-active {
+            border-bottom: 2px solid #4f46e5;
+            color: #4f46e5;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+                EVM Performance Dashboard
+            </h1>
+            <p class="mt-2 text-lg text-slate-500">
+                Track project health with indices and S-Curve visualizations.
+            </p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="flex justify-center space-x-8 mb-8 border-b border-slate-200">
+            <button onclick="switchTab('calc')" id="tab-calc" class="pb-4 px-2 font-semibold text-sm transition-all tab-active">
+                Snapshot Calculator
+            </button>
+            <button onclick="switchTab('scurve')" id="tab-scurve" class="pb-4 px-2 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all">
+                S-Curve Visualization
+            </button>
+        </div>
+
+        <!-- Tab Content: Calculator -->
+        <div id="content-calc">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Inputs Section -->
+                <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-semibold text-slate-800 mb-4 border-b pb-2">Input Data</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="bac" class="block text-sm font-medium text-slate-700">Budget at Completion (BAC)</label>
+                            <input type="number" id="bac" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="Total project budget">
+                        </div>
+                        <div>
+                            <label for="pv" class="block text-sm font-medium text-slate-700">Planned Value (PV)</label>
+                            <input type="number" id="pv" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="Work scheduled">
+                        </div>
+                        <div>
+                            <label for="ev" class="block text-sm font-medium text-slate-700">Earned Value (EV)</label>
+                            <input type="number" id="ev" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="Work performed">
+                        </div>
+                        <div>
+                            <label for="ac" class="block text-sm font-medium text-slate-700">Actual Cost (AC)</label>
+                            <input type="number" id="ac" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="Cost incurred">
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <button onclick="resetInputs()" class="w-full bg-slate-200 text-slate-700 px-4 py-2 rounded-md hover:bg-slate-300 transition-colors text-sm font-medium">
+                            Reset All
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results Section -->
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div id="status-cpi" class="metric-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">CPI</p>
+                            <p id="res-cpi" class="text-3xl font-bold text-slate-900 mt-1">0.00</p>
+                            <p id="label-cpi" class="text-xs mt-1 font-medium">-</p>
+                        </div>
+                        <div id="status-spi" class="metric-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">SPI</p>
+                            <p id="res-spi" class="text-3xl font-bold text-slate-900 mt-1">0.00</p>
+                            <p id="label-spi" class="text-xs mt-1 font-medium">-</p>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Variances</h3>
+                        <div class="grid grid-cols-2 gap-8">
+                            <div>
+                                <p class="text-xs text-slate-500">Cost Variance (CV)</p>
+                                <p id="res-cv" class="text-xl font-semibold text-slate-900">$0.00</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500">Schedule Variance (SV)</p>
+                                <p id="res-sv" class="text-xl font-semibold text-slate-900">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-indigo-600 p-6 rounded-xl shadow-lg text-white">
+                        <h3 class="text-sm font-bold uppercase tracking-wider mb-4 opacity-90">Forecasting (EAC Calculation)</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <div>
+                                <p class="text-xs opacity-80">Estimate at Completion (EAC)</p>
+                                <p id="res-eac" class="text-xl font-bold">$0.00</p>
+                            </div>
+                            <div>
+                                <p class="text-xs opacity-80">Estimate to Complete (ETC)</p>
+                                <p id="res-etc" class="text-xl font-bold">$0.00</p>
+                            </div>
+                            <div>
+                                <p class="text-xs opacity-80">Variance at Completion (VAC)</p>
+                                <p id="res-vac" class="text-xl font-bold">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: S-Curve -->
+        <div id="content-scurve" class="hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <!-- History Table -->
+                <div class="lg:col-span-1 bg-white p-4 rounded-xl border border-slate-200 h-fit">
+                    <h3 class="font-bold text-slate-800 mb-4 border-b pb-2">Progress History</h3>
+                    <div id="history-container" class="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                        <!-- History rows will be injected here -->
+                    </div>
+                    <button onclick="addHistoryRow()" class="mt-4 w-full border-2 border-dashed border-slate-300 text-slate-500 py-2 rounded-lg hover:border-indigo-400 hover:text-indigo-500 transition-all text-sm font-bold">
+                        + Add Data Point (Month)
+                    </button>
+                    <button onclick="generateStandardCurve()" class="mt-2 w-full border border-slate-200 text-slate-600 py-2 rounded-lg hover:bg-slate-50 transition-all text-xs font-semibold">
+                        Auto-Generate PV (α=2, β=2)
+                    </button>
+                    <button onclick="updateChart()" class="mt-4 w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition-all text-sm font-bold shadow-md">
+                        Update Chart
+                    </button>
+                </div>
+
+                <!-- Chart Area -->
+                <div class="lg:col-span-3 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold text-slate-800 uppercase tracking-widest text-sm">Project S-Curve</h3>
+                        <div class="flex gap-4 text-xs font-semibold">
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-blue-500 rounded-full"></span> PV</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-amber-500 rounded-full"></span> EV</span>
+                            <span class="flex items-center gap-1"><span class="w-3 h-3 bg-rose-500 rounded-full"></span> AC</span>
+                        </div>
+                    </div>
+                    <div class="relative w-full aspect-[16/10]">
+                        <canvas id="sCurveChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Footer (Shared) -->
+        <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-slate-600">
+            <div class="bg-white p-4 rounded-lg border border-slate-200">
+                <h4 class="font-bold text-slate-800 mb-2">S-Curve Analysis</h4>
+                <p class="text-xs leading-relaxed">
+                    The S-Curve tracks cumulative values over time. 
+                    - If <strong>EV</strong> is above <strong>PV</strong>, you are ahead of schedule.
+                    - If <strong>EV</strong> is above <strong>AC</strong>, you are under budget.
+                </p>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-slate-200">
+                <h4 class="font-bold text-slate-800 mb-2">Status Key</h4>
+                <div class="grid grid-cols-2 gap-2 text-[10px]">
+                    <span class="text-emerald-600 font-bold">● Efficient</span>
+                    <span class="text-red-600 font-bold">● Over/Behind</span>
+                    <span class="text-slate-400 font-bold">● Target</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Calculator Logic ---
+        const inputs = ['bac', 'pv', 'ev', 'ac'];
+        inputs.forEach(id => document.getElementById(id).addEventListener('input', calculate));
+
+        function calculate() {
+            const BAC = parseFloat(document.getElementById('bac').value) || 0;
+            const PV = parseFloat(document.getElementById('pv').value) || 0;
+            const EV = parseFloat(document.getElementById('ev').value) || 0;
+            const AC = parseFloat(document.getElementById('ac').value) || 0;
+
+            const CV = EV - AC;
+            const SV = EV - PV;
+            const CPI = AC !== 0 ? (EV / AC) : 0;
+            const SPI = PV !== 0 ? (EV / PV) : 0;
+            const EAC = (CPI !== 0) ? (BAC / CPI) : (AC + (BAC - EV));
+            const ETC = EAC - AC;
+            const VAC = BAC - EAC;
+
+            updateResult('res-cv', CV, true);
+            updateResult('res-sv', SV, true);
+            updateResult('res-cpi', CPI.toFixed(2), false);
+            updateResult('res-spi', SPI.toFixed(2), false);
+            updateResult('res-eac', EAC, true);
+            updateResult('res-etc', ETC, true);
+            updateResult('res-vac', VAC, true);
+
+            updateStatus('status-cpi', 'label-cpi', CPI, 'Cost');
+            updateStatus('status-spi', 'label-spi', SPI, 'Schedule');
+        }
+
+        function updateResult(id, value, isCurrency) {
+            const el = document.getElementById(id);
+            if (isCurrency) {
+                el.innerText = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', signDisplay: 'exceptZero' }).format(value);
+                if (value < 0) el.classList.add('text-red-600');
+                else if (value > 0 && id.startsWith('res-v')) el.classList.add('text-emerald-600');
+                else el.classList.remove('text-red-600', 'text-emerald-600');
+            } else {
+                el.innerText = value;
+            }
+        }
+
+        function updateStatus(cardId, labelId, value, type) {
+            const card = document.getElementById(cardId);
+            const label = document.getElementById(labelId);
+            if (value === 0) {
+                card.className = 'metric-card bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center';
+                label.innerText = '-';
+                return;
+            }
+            if (value >= 1) {
+                card.className = 'metric-card bg-emerald-50 p-4 rounded-xl shadow-sm border border-emerald-200 text-center';
+                label.innerText = type === 'Cost' ? 'Under Budget' : 'Ahead of Schedule';
+            } else {
+                card.className = 'metric-card bg-red-50 p-4 rounded-xl shadow-sm border border-red-200 text-center';
+                label.innerText = type === 'Cost' ? 'Over Budget' : 'Behind Schedule';
+            }
+        }
+
+        function resetInputs() {
+            inputs.forEach(id => document.getElementById(id).value = '');
+            historyData = []; // Clear S-curve history
+            calculate();
+        }
+
+        // --- Tab Logic ---
+        function switchTab(tab) {
+            const isCalc = tab === 'calc';
+            document.getElementById('content-calc').classList.toggle('hidden', !isCalc);
+            document.getElementById('content-scurve').classList.toggle('hidden', isCalc);
+            
+            document.getElementById('tab-calc').className = isCalc 
+                ? 'pb-4 px-2 font-semibold text-sm transition-all tab-active' 
+                : 'pb-4 px-2 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all';
+            document.getElementById('tab-scurve').className = !isCalc 
+                ? 'pb-4 px-2 font-semibold text-sm transition-all tab-active' 
+                : 'pb-4 px-2 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all';
+
+            if (!isCalc) initScurve();
+        }
+
+        // --- S-Curve Logic ---
+        function getBetaCDF(x, alpha, beta) {
+            // Simplified Beta CDF for alpha=2, beta=2: 3x^2 - 2x^3
+            if (alpha === 2 && beta === 2) {
+                return 3 * Math.pow(x, 2) - 2 * Math.pow(x, 3);
+            }
+            // Fallback for other alpha/beta (not implemented for complexity, but can be added)
+            return x; 
+        }
+
+        let historyData = [];
+        let myChart = null;
+
+        function initScurve() {
+            const BAC = parseFloat(document.getElementById('bac').value) || 10000;
+            const container = document.getElementById('history-container');
+            
+            // Always regenerate to use current BAC
+            const months = 12;
+            let currentEv = 0;
+            let currentAc = 0;
+            historyData = [];
+            
+            for (let i = 1; i <= months; i++) {
+                const x = i / months;
+                const pv = Math.round(BAC * getBetaCDF(x, 2, 2));
+                
+                let ev = '';
+                let ac = '';
+                
+                // Generate realistic cumulative data for the first half of the project
+                if (i <= 6) {
+                    const prevPv = i === 1 ? 0 : Math.round(BAC * getBetaCDF((i - 1) / months, 2, 2));
+                    const monthlyPv = pv - prevPv;
+                    
+                    // EV slightly behind schedule (90% of planned)
+                    currentEv += Math.round(monthlyPv * 0.9);
+                    // AC slightly over budget (105% of EV)
+                    currentAc += Math.round(monthlyPv * 0.9 * 1.05);
+                    
+                    ev = currentEv;
+                    ac = currentAc;
+                }
+                
+                historyData.push({ pv, ev, ac });
+            }
+
+            container.innerHTML = '';
+            historyData.forEach((row, idx) => addHistoryRow(row, idx));
+            updateChart();
+        }
+
+        function addHistoryRow(data = { pv: '', ev: '', ac: '' }, index = null) {
+            const container = document.getElementById('history-container');
+            const idx = index !== null ? index : container.children.length;
+            const div = document.createElement('div');
+            div.className = 'p-3 bg-slate-50 rounded-lg border border-slate-100 relative';
+            div.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Month ${idx + 1}</span>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-slate-300 hover:text-red-400 transition-colors">
+                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/></svg>
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" class="h-row-pv p-1 text-xs border rounded w-full" value="${data.pv !== undefined ? data.pv : ''}" placeholder="PV">
+                    <input type="number" class="h-row-ev p-1 text-xs border rounded w-full" value="${data.ev !== undefined ? data.ev : ''}" placeholder="EV">
+                    <input type="number" class="h-row-ac p-1 text-xs border rounded w-full" value="${data.ac !== undefined ? data.ac : ''}" placeholder="AC">
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        function updateChart() {
+            const pvData = Array.from(document.querySelectorAll('.h-row-pv')).map(i => i.value !== '' ? parseFloat(i.value) : null);
+            const evData = Array.from(document.querySelectorAll('.h-row-ev')).map(i => i.value !== '' ? parseFloat(i.value) : null);
+            const acData = Array.from(document.querySelectorAll('.h-row-ac')).map(i => i.value !== '' ? parseFloat(i.value) : null);
+            const labels = pvData.map((_, i) => `Month ${i + 1}`);
+
+            if (myChart) myChart.destroy();
+
+            const ctx = document.getElementById('sCurveChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Planned Value (PV)', data: pvData, borderColor: '#3b82f6', backgroundColor: '#3b82f6', tension: 0.3, fill: false },
+                        { label: 'Earned Value (EV)', data: evData, borderColor: '#f59e0b', backgroundColor: '#f59e0b', tension: 0.3, fill: false },
+                        { label: 'Actual Cost (AC)', data: acData, borderColor: '#f43f5e', backgroundColor: '#f43f5e', tension: 0.3, fill: false }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 1.6,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false } },
+                    spanGaps: true,
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: v => '$' + v.toLocaleString() }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Save for persistence in session
+            historyData = pvData.map((v, i) => ({ 
+                pv: v !== null ? v : '', 
+                ev: evData[i] !== null ? evData[i] : '', 
+                ac: acData[i] !== null ? acData[i] : '' 
+            }));
+        }
+
+        function generateStandardCurve() {
+            const BAC = parseFloat(document.getElementById('bac').value) || 10000;
+            const container = document.getElementById('history-container');
+            const rowCount = container.children.length || 12;
+            
+            const pvs = Array.from({length: rowCount}, (_, i) => {
+                const x = (i + 1) / rowCount;
+                return Math.round(BAC * getBetaCDF(x, 2, 2));
+            });
+
+            const pvInputs = document.querySelectorAll('.h-row-pv');
+            pvInputs.forEach((input, i) => {
+                input.value = pvs[i];
+            });
+            
+            updateChart();
+        }
+    </script>
+</body>
+</html>

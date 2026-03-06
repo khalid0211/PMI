@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inflation Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { border-bottom: 2px solid #4f46e5; color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen py-12 px-4">
+    <div class="max-w-md mx-auto">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-extrabold text-slate-900">Inflation Calculator</h1>
+            <p class="mt-2 text-slate-500">Calculate inflation impact on prices</p>
+        </div>
+
+        <div class="flex justify-center mb-6 border-b border-slate-200">
+            <button onclick="switchTab('future')" id="tab-future" class="pb-3 px-4 font-semibold text-sm transition-all tab-active">
+                Calculate Future Price
+            </button>
+            <button onclick="switchTab('rate')" id="tab-rate" class="pb-3 px-4 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all">
+                Calculate Inflation Rate
+            </button>
+        </div>
+
+        <!-- Calculate Future Price -->
+        <div id="content-future" class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="space-y-4">
+                <div>
+                    <label for="inflationRate" class="block text-sm font-medium text-slate-700">Annual Inflation Rate (%)</label>
+                    <input type="number" id="inflationRate" step="0.1" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 3.5">
+                </div>
+                <div>
+                    <label for="currentPrice" class="block text-sm font-medium text-slate-700">Current Price (PKR)</label>
+                    <input type="number" id="currentPrice" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 100">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="currentYear" class="block text-sm font-medium text-slate-700">Current Year</label>
+                        <input type="number" id="currentYear" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 2025">
+                    </div>
+                    <div>
+                        <label for="futureYear" class="block text-sm font-medium text-slate-700">Future Year</label>
+                        <input type="number" id="futureYear" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 2035">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-indigo-600 rounded-lg text-white text-center">
+                <p class="text-xs opacity-80 uppercase tracking-wide font-semibold">Future Price</p>
+                <p id="result-future" class="text-3xl font-bold mt-1">₨0.00</p>
+            </div>
+
+            <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <p class="text-xs text-slate-500 text-center">
+                    Total Inflation: <span id="totalInflation" class="font-semibold text-slate-700">0%</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Calculate Inflation Rate -->
+        <div id="content-rate" class="hidden bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+            <div class="space-y-4">
+                <div>
+                    <label for="pastPrice" class="block text-sm font-medium text-slate-700">Past Price (PKR)</label>
+                    <input type="number" id="pastPrice" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 100">
+                </div>
+                <div>
+                    <label for="currentPriceRate" class="block text-sm font-medium text-slate-700">Current Price (PKR)</label>
+                    <input type="number" id="currentPriceRate" step="0.01" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 150">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="pastYear" class="block text-sm font-medium text-slate-700">Past Year</label>
+                        <input type="number" id="pastYear" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 2015">
+                    </div>
+                    <div>
+                        <label for="currentYearRate" class="block text-sm font-medium text-slate-700">Current Year</label>
+                        <input type="number" id="currentYearRate" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-2 bg-slate-50 border" placeholder="e.g., 2025">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-indigo-600 rounded-lg text-white text-center">
+                <p class="text-xs opacity-80 uppercase tracking-wide font-semibold">Implied Annual Inflation Rate</p>
+                <p id="result-rate" class="text-3xl font-bold mt-1">0.00%</p>
+            </div>
+
+            <div class="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-100">
+                <p class="text-xs text-slate-500 text-center">
+                    Total Price Change: <span id="totalChange" class="font-semibold text-slate-700">0%</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 bg-white p-4 rounded-xl border border-slate-200 text-sm text-slate-600">
+            <h3 class="font-bold text-slate-800 mb-2">Formulas</h3>
+            <div class="text-xs space-y-2">
+                <p><strong>Future Price:</strong> Current Price × (1 + r)<sup>n</sup></p>
+                <p><strong>Inflation Rate:</strong> r = (Current/Past)<sup>1/n</sup> - 1</p>
+            </div>
+            <p class="mt-2 text-xs text-slate-400">Where <em>r</em> = annual rate, <em>n</em> = years</p>
+        </div>
+    </div>
+
+    <script>
+        // Future Price Calculation
+        const inputs1 = ['inflationRate', 'currentPrice', 'currentYear', 'futureYear'];
+        inputs1.forEach(id => document.getElementById(id).addEventListener('input', calculateFuture));
+
+        function calculateFuture() {
+            const rate = parseFloat(document.getElementById('inflationRate').value) || 0;
+            const current = parseFloat(document.getElementById('currentPrice').value) || 0;
+            const currentYear = parseFloat(document.getElementById('currentYear').value) || 0;
+            const futureYear = parseFloat(document.getElementById('futureYear').value) || 0;
+            
+            const years = Math.max(0, futureYear - currentYear);
+            const futurePrice = current * Math.pow(1 + rate / 100, years);
+            const totalInflation = years > 0 ? ((futurePrice - current) / current * 100) : 0;
+
+            document.getElementById('result-future').textContent = '₨' + futurePrice.toLocaleString('en-PK', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('totalInflation').textContent = totalInflation.toFixed(1) + '%';
+        }
+
+        // Rate Calculation
+        const inputs2 = ['pastPrice', 'currentPriceRate', 'pastYear', 'currentYearRate'];
+        inputs2.forEach(id => document.getElementById(id).addEventListener('input', calculateRate));
+
+        function calculateRate() {
+            const past = parseFloat(document.getElementById('pastPrice').value) || 0;
+            const current = parseFloat(document.getElementById('currentPriceRate').value) || 0;
+            const pastYear = parseFloat(document.getElementById('pastYear').value) || 0;
+            const currentYearRate = parseFloat(document.getElementById('currentYearRate').value) || 0;
+            
+            const years = Math.max(0, currentYearRate - pastYear);
+
+            let annualRate = 0;
+            if (past > 0 && years > 0) {
+                annualRate = (Math.pow(current / past, 1 / years) - 1) * 100;
+            }
+
+            const totalChange = past > 0 ? ((current - past) / past * 100) : 0;
+
+            document.getElementById('result-rate').textContent = annualRate.toFixed(2) + '%';
+            document.getElementById('totalChange').textContent = totalChange.toFixed(1) + '%';
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            const isFuture = tab === 'future';
+            document.getElementById('content-future').classList.toggle('hidden', !isFuture);
+            document.getElementById('content-rate').classList.toggle('hidden', isFuture);
+            
+            document.getElementById('tab-future').className = isFuture 
+                ? 'pb-3 px-4 font-semibold text-sm transition-all tab-active' 
+                : 'pb-3 px-4 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all';
+            document.getElementById('tab-rate').className = !isFuture 
+                ? 'pb-3 px-4 font-semibold text-sm transition-all tab-active' 
+                : 'pb-3 px-4 font-semibold text-sm text-slate-400 hover:text-slate-600 transition-all';
+        }
+    </script>
+</body>
+</html>
