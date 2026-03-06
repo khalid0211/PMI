@@ -355,9 +355,9 @@ def fmt_currency(val: float) -> str:
     if np.isnan(val): return "N/A"
     sign = "-" if val < 0 else ""
     val  = abs(val)
-    if val >= 1_000_000: return f"{sign}${val/1_000_000:.2f}M"
-    if val >= 1_000:     return f"{sign}${val/1_000:.1f}K"
-    return f"{sign}${val:.0f}"
+    if val >= 1_000_000: return f"{sign}PKR {val/1_000_000:.2f}M"
+    if val >= 1_000:     return f"{sign}PKR {val/1_000:.1f}K"
+    return f"{sign}PKR {val:.0f}"
 
 def fmt_index(val: float) -> str:
     return "N/A" if (np.isnan(val) or np.isinf(val)) else f"{val:.3f}"
@@ -504,19 +504,19 @@ def build_scurve(df: pd.DataFrame, T: dict) -> go.Figure:
         mode="lines+markers", name="Planned Value (PV)",
         line=dict(color=T["accent"], width=2.5, dash="dot"),
         marker=dict(size=7, symbol="circle-open", line=dict(width=2, color=T["accent"])),
-        hovertemplate="<b>%{x}</b><br>PV: $%{y:,.0f}<extra></extra>"))
+        hovertemplate="<b>%{x}</b><br>PV: PKR %{y:,.0f}<extra></extra>"))
 
     fig.add_trace(go.Scatter(x=months, y=df["Earned Value"],
         mode="lines+markers", name="Earned Value (EV)",
         line=dict(color=T["green"], width=2.5),
         marker=dict(size=7, symbol="diamond", color=T["green"]),
-        hovertemplate="<b>%{x}</b><br>EV: $%{y:,.0f}<extra></extra>"))
+        hovertemplate="<b>%{x}</b><br>EV: PKR %{y:,.0f}<extra></extra>"))
 
     fig.add_trace(go.Scatter(x=months, y=df["Actual Cost"],
         mode="lines+markers", name="Actual Cost (AC)",
         line=dict(color=T["red"], width=2.5),
         marker=dict(size=7, symbol="square", color=T["red"]),
-        hovertemplate="<b>%{x}</b><br>AC: $%{y:,.0f}<extra></extra>"))
+        hovertemplate="<b>%{x}</b><br>AC: PKR %{y:,.0f}<extra></extra>"))
 
     fig.update_layout(
         template=T["plot_template"],
@@ -526,8 +526,8 @@ def build_scurve(df: pd.DataFrame, T: dict) -> go.Figure:
                    font=dict(size=14, color=T["text_primary"]), x=0, xanchor="left"),
         xaxis=dict(title="Period", gridcolor=T["grid"], linecolor=T["border"],
                    tickfont=dict(size=11)),
-        yaxis=dict(title="Cumulative ($)", gridcolor=T["grid"], linecolor=T["border"],
-                   tickformat="$,.0f", tickfont=dict(size=11)),
+        yaxis=dict(title="Cumulative (PKR)", gridcolor=T["grid"], linecolor=T["border"],
+                   tickprefix="PKR ", tickformat=",.0f", tickfont=dict(size=11)),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1,
                     bgcolor="rgba(0,0,0,0)", bordercolor=T["border"],
                     font=dict(size=12)),
