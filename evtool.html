@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>EVM Calculator</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --border: #2a2d3e;
+      --text: #e0e0e0;
+      --text-sub: #888;
+      --text-dim: #555;
+      --input-bg: #0f1117;
+      --card-value: #fff;
+      --btn-reset: #2a2d3e;
+      --btn-reset-text: #aaa;
+      --tooltip-bg: #2a2d3e;
+      --tooltip-border: #3a3d55;
+    }
+    [data-theme="light"] {
+      --bg: #f4f5f9;
+      --surface: #ffffff;
+      --border: #dde0ed;
+      --text: #1a1d27;
+      --text-sub: #666;
+      --text-dim: #aaa;
+      --input-bg: #f4f5f9;
+      --card-value: #1a1d27;
+      --btn-reset: #e4e7f2;
+      --btn-reset-text: #555;
+      --tooltip-bg: #e4e7f2;
+      --tooltip-border: #c0c4d6;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .container { max-width: 800px; margin: 0 auto; }
+
+    /* Header */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.03em;
+    }
+
+    #theme-toggle {
+      position: absolute;
+      right: 0;
+      flex: none;
+      padding: 0.38rem 0.9rem;
+      background: var(--btn-reset);
+      color: var(--btn-reset-text);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    #theme-toggle:hover { opacity: 0.8; }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 2rem;
+    }
+
+    /* Inputs */
+    .inputs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 1rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 0.4rem;
+    }
+
+    .input-group span.hint {
+      display: block;
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 0.55rem 0.75rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus { border-color: #4a6cf7; }
+
+    .btn-row { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+
+    button {
+      flex: 1;
+      padding: 0.65rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    button:active { transform: scale(0.98); }
+
+    #calc-btn { background: #4a6cf7; color: #fff; }
+    #calc-btn:hover { opacity: 0.9; }
+    #reset-btn { background: var(--btn-reset); color: var(--btn-reset-text); }
+    #reset-btn:hover { opacity: 0.8; }
+
+    /* Health badge */
+    #health-badge { display: none; text-align: center; margin-bottom: 1.5rem; }
+
+    .badge {
+      display: inline-block;
+      padding: 0.45rem 1.4rem;
+      border-radius: 99px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .badge.on-track { background: #1a3a2a; color: #4caf7d; border: 1px solid #4caf7d; }
+    .badge.at-risk  { background: #3a2f1a; color: #f0a500; border: 1px solid #f0a500; }
+    .badge.critical { background: #3a1a1a; color: #f05050; border: 1px solid #f05050;
+                      animation: pulse 1.4s ease-in-out infinite; }
+
+    [data-theme="light"] .badge.on-track { background: #e6f5ee; }
+    [data-theme="light"] .badge.at-risk  { background: #fff5e0; }
+    [data-theme="light"] .badge.critical { background: #fde8e8; }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(240,80,80,0.4); }
+      50%      { box-shadow: 0 0 0 6px rgba(240,80,80,0); }
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Cards */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.1rem;
+      position: relative;
+    }
+    .card .card-label {
+      font-size: 0.7rem; font-weight: 600; color: var(--text-sub);
+      text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem;
+    }
+    .card .card-name  { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+    .card .card-value { font-size: 1.5rem; font-weight: 700; color: var(--card-value); }
+    .card .card-value.green { color: #4caf7d; }
+    .card .card-value.red   { color: #f05050; }
+    .card .card-value.amber { color: #f0a500; }
+
+    .card .card-bar {
+      height: 3px; border-radius: 2px; margin-top: 0.65rem;
+      background: var(--border); overflow: hidden;
+    }
+    .card .card-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s ease; }
+
+    /* S-Curve */
+    #scurve-section { display: none; margin-bottom: 1.5rem; }
+
+    .chart-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem 1.25rem 0.75rem;
+    }
+    .chart-wrapper canvas { max-height: 320px; }
+
+    /* Insights */
+    #insights-section { display: none; }
+    #results-section  { display: none; }
+
+    .insight {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.65rem;
+    }
+    .insight-icon { font-size: 1.1rem; min-width: 1.4rem; text-align: center; }
+    .insight-body .insight-title {
+      font-size: 0.82rem; font-weight: 700; color: var(--text); margin-bottom: 0.2rem;
+    }
+    .insight-body .insight-text { font-size: 0.78rem; color: var(--text-sub); line-height: 1.5; }
+
+    /* Formula tooltip */
+    .card[data-formula]:hover::after {
+      content: attr(data-formula);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--tooltip-bg);
+      color: var(--text-sub);
+      font-size: 0.7rem;
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+      border: 1px solid var(--tooltip-border);
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>EVM Calculator</h1>
+    <button id="theme-toggle" onclick="toggleTheme()">&#9728; Light</button>
+  </div>
+  <p class="subtitle">Earned Value Management &mdash; enter cumulative values to date</p>
+
+  <div class="inputs-grid">
+    <div class="input-group">
+      <label>BAC</label>
+      <span class="hint">Budget at Completion</span>
+      <input type="number" id="bac" placeholder="e.g. 100000" min="0" step="any"/>
+    </div>
+    <div class="input-group">
+      <label>PV</label>
+      <span class="hint">Planned Value</span>
+      <input type="number" id="pv" placeholder="e.g. 60000" min="0" step="any"/>
+    </div>
+    <div class="input-group">
+      <label>EV</label>
+      <span class="hint">Earned Value</span>
+      <input type="number" id="ev" placeholder="e.g. 55000" min="0" step="any"/>
+    </div>
+    <div class="input-group">
+      <label>AC</label>
+      <span class="hint">Actual Cost</span>
+      <input type="number" id="ac" placeholder="e.g. 62000" min="0" step="any"/>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button id="calc-btn" onclick="calculate()">Calculate</button>
+    <button id="reset-btn" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div id="health-badge"></div>
+
+  <div id="results-section">
+    <p class="section-title">Variances</p>
+    <div class="cards-grid" id="variance-cards"></div>
+
+    <p class="section-title">Performance Indices</p>
+    <div class="cards-grid" id="index-cards"></div>
+
+    <p class="section-title">Forecasts</p>
+    <div class="cards-grid" id="forecast-cards"></div>
+  </div>
+
+  <div id="scurve-section">
+    <p class="section-title">S-Curve &mdash; Cumulative Cost vs Project Timeline</p>
+    <div class="chart-wrapper">
+      <canvas id="scurve-chart"></canvas>
+    </div>
+  </div>
+
+  <div id="insights-section">
+    <p class="section-title">PM Insights</p>
+    <div id="insights-list"></div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  let scurveChart = null;
+  let isDark = true;
+
+  function toggleTheme() {
+    isDark = !isDark;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-toggle').innerHTML = isDark ? '&#9728; Light' : '&#9790; Dark';
+    if (scurveChart) refreshChartTheme();
+  }
+
+  function chartColors() {
+    return {
+      grid:   isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)',
+      tick:   isDark ? '#777' : '#999',
+      legend: isDark ? '#ccc' : '#444',
+      ttBg:   isDark ? '#1a1d27' : '#ffffff',
+      ttBdr:  isDark ? '#3a3d55' : '#dde0ed',
+      ttTitle:isDark ? '#ddd' : '#333',
+      ttBody: isDark ? '#aaa' : '#666',
+    };
+  }
+
+  function refreshChartTheme() {
+    const C = chartColors();
+    const o = scurveChart.options;
+    o.scales.x.grid.color  = C.grid;
+    o.scales.x.ticks.color = C.tick;
+    o.scales.x.title.color = C.tick;
+    o.scales.y.grid.color  = C.grid;
+    o.scales.y.ticks.color = C.tick;
+    o.scales.y.title.color = C.tick;
+    o.plugins.legend.labels.color = C.legend;
+    o.plugins.tooltip.backgroundColor = C.ttBg;
+    o.plugins.tooltip.borderColor     = C.ttBdr;
+    o.plugins.tooltip.titleColor      = C.ttTitle;
+    o.plugins.tooltip.bodyColor       = C.ttBody;
+    scurveChart.update('none');
+  }
+
+  /* ---- Formatters ---- */
+  function fmt(val, decimals=0) {
+    if (val === null || isNaN(val) || !isFinite(val)) return 'N/A';
+    const abs  = Math.abs(val);
+    const sign = val < 0 ? '-' : '';
+    if (abs >= 1e6) return `${sign}$${(abs/1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `${sign}$${(abs/1e3).toFixed(1)}K`;
+    return `${sign}$${abs.toFixed(decimals)}`;
+  }
+  function fmtR(val)   { return (val===null||isNaN(val)||!isFinite(val)) ? 'N/A' : val.toFixed(2); }
+  function fmtP(val)   { return (val===null||isNaN(val)||!isFinite(val)) ? 'N/A' : (val*100).toFixed(1)+'%'; }
+
+  function idxColor(val, inv=false) {
+    if (val===null||isNaN(val)) return '';
+    if (inv ? val<=1.0 : val>=1.0) return 'green';
+    if (inv ? val<=1.1 : val>=0.9) return 'amber';
+    return 'red';
+  }
+  function varColor(val) { return (val===null||isNaN(val)) ? '' : val>=0 ? 'green' : 'red'; }
+  function barW(r,inv=false) {
+    if (r===null||isNaN(r)||!isFinite(r)) return 0;
+    return Math.min(Math.max(inv?(2-r):r,0),2)*50;
+  }
+  function barC(cls) { return cls==='green'?'#4caf7d':cls==='amber'?'#f0a500':'#f05050'; }
+
+  function card(lbl, name, val, cls, formula, bp, bc) {
+    const bar = bp!=null ? `<div class="card-bar"><div class="card-bar-fill" style="width:${bp}%;background:${bc}"></div></div>` : '';
+    return `<div class="card" data-formula="${formula}">
+      <div class="card-label">${lbl}</div>
+      <div class="card-name">${name}</div>
+      <div class="card-value ${cls}">${val}</div>${bar}</div>`;
+  }
+
+  /* ---- S-Curve generation ---- */
+  function sigmoid(bac, N=100) {
+    const k=10, raw=t=>1/(1+Math.exp(-k*(t-0.5)));
+    const r0=raw(0), r1=raw(1);
+    return Array.from({length:N+1},(_,i)=>(raw(i/N)-r0)/(r1-r0)*bac);
+  }
+
+  function buildCurves(bac, pv, ev, ac, eac) {
+    const N = 100;
+    const pvC = sigmoid(bac, N);
+
+    // Find where cumulative PV crosses the user's pv input
+    let nowIdx = N;
+    for (let i=0; i<=N; i++) { if (pvC[i] >= pv) { nowIdx=i; break; } }
+
+    const pvAtNow = pvC[nowIdx] || pv || 1;
+    const evC = pvC.slice(0, nowIdx+1).map(v => v * ev/pvAtNow);
+    const acC = pvC.slice(0, nowIdx+1).map(v => v * ac/pvAtNow);
+
+    const nullTail = n => Array(n).fill(null);
+
+    // EAC forecast dashed line from AC-now to EAC at 100%
+    const eacLine = [...nullTail(nowIdx), ac];
+    if (eac !== null && isFinite(eac)) {
+      const rem = N - nowIdx;
+      for (let i=1; i<=rem; i++) eacLine.push(ac + (eac-ac)*(i/rem));
+    }
+
+    const labels = Array.from({length:N+1},(_,i)=> i%10===0 ? `${i}%` : '');
+
+    return {
+      pvC,
+      evFull: [...evC, ...nullTail(N-nowIdx)],
+      acFull: [...acC, ...nullTail(N-nowIdx)],
+      eacLine,
+      labels,
+    };
+  }
+
+  function renderSCurve(bac, pv, ev, ac, eac) {
+    const { pvC, evFull, acFull, eacLine, labels } = buildCurves(bac,pv,ev,ac,eac);
+    const C = chartColors();
+    const ctx = document.getElementById('scurve-chart').getContext('2d');
+    if (scurveChart) { scurveChart.destroy(); scurveChart = null; }
+
+    scurveChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Planned Value (PV)',
+            data: pvC,
+            borderColor: '#4a6cf7',
+            borderWidth: 2,
+            borderDash: [6,3],
+            pointRadius: 0,
+            tension: 0.4,
+            fill: false,
+          },
+          {
+            label: 'Earned Value (EV)',
+            data: evFull,
+            borderColor: '#4caf7d',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: false,
+            spanGaps: false,
+          },
+          {
+            label: 'Actual Cost (AC)',
+            data: acFull,
+            borderColor: '#f05050',
+            borderWidth: 2.5,
+            pointRadius: 0,
+            tension: 0.4,
+            fill: false,
+            spanGaps: false,
+          },
+          {
+            label: 'EAC Forecast',
+            data: eacLine,
+            borderColor: '#f0a500',
+            borderWidth: 1.5,
+            borderDash: [4,4],
+            pointRadius: 0,
+            tension: 0,
+            fill: false,
+            spanGaps: false,
+          },
+        ]
+      },
+      options: {
+        responsive: true,
+        animation: { duration: 350 },
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: C.legend, font: { size: 12 }, boxWidth: 24, padding: 14 }
+          },
+          tooltip: {
+            backgroundColor: C.ttBg,
+            titleColor: C.ttTitle,
+            bodyColor: C.ttBody,
+            borderColor: C.ttBdr,
+            borderWidth: 1,
+            callbacks: {
+              label: ctx => ctx.raw===null ? null : ` ${ctx.dataset.label}: ${fmt(ctx.raw)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: C.grid },
+            ticks: { color: C.tick, font: { size: 11 } },
+            title: { display: true, text: 'Project Timeline (%)', color: C.tick, font: { size: 11 } }
+          },
+          y: {
+            grid: { color: C.grid },
+            ticks: { color: C.tick, font: { size: 11 }, callback: v => fmt(v) },
+            title: { display: true, text: 'Cumulative Cost', color: C.tick, font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  /* ---- Main calculate ---- */
+  function calculate() {
+    const bac = parseFloat(document.getElementById('bac').value);
+    const pv  = parseFloat(document.getElementById('pv').value);
+    const ev  = parseFloat(document.getElementById('ev').value);
+    const ac  = parseFloat(document.getElementById('ac').value);
+
+    if ([bac,pv,ev,ac].some(isNaN)) { alert('Please enter all four values.'); return; }
+    if (bac <= 0) { alert('BAC must be greater than 0.'); return; }
+
+    const cv   = ev - ac;
+    const sv   = ev - pv;
+    const cpi  = ac !== 0 ? ev/ac : null;
+    const spi  = pv !== 0 ? ev/pv : null;
+    const tcpi = ac < bac  ? (bac-ev)/(bac-ac) : null;
+    const eac  = (cpi && cpi!==0) ? bac/cpi : null;
+    const etc  = eac !== null ? eac-ac  : null;
+    const vac  = eac !== null ? bac-eac : null;
+    const pctDone  = ev/bac;
+    const pctSpent = ac/bac;
+
+    // Health badge
+    let hc='at-risk', ht='At Risk';
+    if (cpi!==null && spi!==null) {
+      if (cpi>=1.0 && spi>=1.0)       { hc='on-track'; ht='On Track'; }
+      else if (cpi<0.85 || spi<0.85)  { hc='critical'; ht='Critical'; }
+    }
+    document.getElementById('health-badge').style.display = 'block';
+    document.getElementById('health-badge').innerHTML = `<span class="badge ${hc}">${ht}</span>`;
+
+    // Variance cards
+    document.getElementById('variance-cards').innerHTML =
+      card('CV','Cost Variance', fmt(cv), varColor(cv), 'CV = EV − AC', null,'') +
+      card('SV','Schedule Variance', fmt(sv), varColor(sv), 'SV = EV − PV', null,'') +
+      card('% Complete','Work Done vs BAC', fmtP(pctDone), '', '% Complete = EV / BAC',
+           Math.min(pctDone*100,100), '#4a6cf7') +
+      card('% Spent','Cost vs BAC', fmtP(pctSpent), pctSpent<=pctDone?'green':'red',
+           '% Spent = AC / BAC', Math.min(pctSpent*100,100), pctSpent<=pctDone?'#4caf7d':'#f05050');
+
+    // Index cards
+    const cpiC=idxColor(cpi), spiC=idxColor(spi), tcpiC=idxColor(tcpi,true);
+    document.getElementById('index-cards').innerHTML =
+      card('CPI','Cost Perf. Index', fmtR(cpi), cpiC, 'CPI = EV / AC', barW(cpi), barC(cpiC)) +
+      card('SPI','Schedule Perf. Index', fmtR(spi), spiC, 'SPI = EV / PV', barW(spi), barC(spiC)) +
+      (tcpi!==null
+        ? card('TCPI','To-Complete Perf. Index', fmtR(tcpi), tcpiC,
+               'TCPI = (BAC−EV) / (BAC−AC)', barW(tcpi,true), barC(tcpiC))
+        : card('TCPI','To-Complete Perf. Index', 'N/A — Over Budget', 'red',
+               'TCPI = (BAC−EV) / (BAC−AC)', 0, '#f05050'));
+
+    // Forecast cards
+    document.getElementById('forecast-cards').innerHTML =
+      card('EAC','Estimate at Completion', fmt(eac), '', 'EAC = BAC / CPI', null,'') +
+      card('ETC','Estimate to Complete',   fmt(etc), '', 'ETC = EAC − AC',  null,'') +
+      card('VAC','Variance at Completion', fmt(vac), varColor(vac), 'VAC = BAC − EAC', null,'');
+
+    // S-Curve
+    document.getElementById('scurve-section').style.display = 'block';
+    renderSCurve(bac, pv, ev, ac, eac);
+
+    // Insights
+    const ins = [];
+    if (cpi!==null) {
+      if (cpi>=1.0)      ins.push({i:'✓',t:'Under Budget',     b:`CPI ${fmtR(cpi)} — every $1 spent returns $${fmtR(cpi)} in earned value.`});
+      else if (cpi>=0.9) ins.push({i:'!',t:'Slight Cost Overrun',b:`CPI ${fmtR(cpi)} — costs are running slightly above plan. Monitor closely.`});
+      else               ins.push({i:'✗',t:'Significant Cost Overrun',b:`CPI ${fmtR(cpi)} — the project is over budget. EAC is ${fmt(eac)}.`});
+    }
+    if (spi!==null) {
+      if (spi>=1.0)      ins.push({i:'✓',t:'Ahead of Schedule',  b:`SPI ${fmtR(spi)} — work is progressing faster than planned.`});
+      else if (spi>=0.9) ins.push({i:'!',t:'Slight Schedule Delay',b:`SPI ${fmtR(spi)} — minor delay. Schedule Variance is ${fmt(sv)}.`});
+      else               ins.push({i:'✗',t:'Behind Schedule',     b:`SPI ${fmtR(spi)} — significant slippage. EV is ${fmt(Math.abs(sv))} below plan.`});
+    }
+    if (tcpi!==null) {
+      if (tcpi<=1.0)      ins.push({i:'✓',t:'Completion Efficiency Achievable',b:`TCPI ${fmtR(tcpi)} — remaining work can finish within remaining budget.`});
+      else if (tcpi<=1.1) ins.push({i:'!',t:'Tight Remaining Budget',           b:`TCPI ${fmtR(tcpi)} — slightly higher efficiency needed to close on budget.`});
+      else                ins.push({i:'✗',t:'Recovery Unlikely',                b:`TCPI ${fmtR(tcpi)} — required efficiency is very high. Consider re-baselining.`});
+    } else {
+      ins.push({i:'✗',t:'Budget Exceeded',b:'Actual Cost has exceeded BAC. TCPI is undefined — a formal re-baseline is recommended.'});
+    }
+    if (vac!==null) {
+      ins.push({i:vac>=0?'✓':'!', t:'Final Cost Forecast',
+        b:`At current CPI, project will finish ${vac>=0?fmt(vac)+' under':fmt(Math.abs(vac))+' over'} budget (EAC ${fmt(eac)}).`});
+    }
+
+    document.getElementById('insights-list').innerHTML = ins.map(x=>`
+      <div class="insight">
+        <div class="insight-icon">${x.i}</div>
+        <div class="insight-body">
+          <div class="insight-title">${x.t}</div>
+          <div class="insight-text">${x.b}</div>
+        </div>
+      </div>`).join('');
+
+    document.getElementById('results-section').style.display = 'block';
+    document.getElementById('insights-section').style.display = 'block';
+  }
+
+  function resetAll() {
+    ['bac','pv','ev','ac'].forEach(id => document.getElementById(id).value='');
+    ['health-badge','results-section','scurve-section','insights-section']
+      .forEach(id => document.getElementById(id).style.display='none');
+    if (scurveChart) { scurveChart.destroy(); scurveChart=null; }
+  }
+
+  document.addEventListener('keydown', e => { if (e.key==='Enter') calculate(); });
+</script>
+</body>
+</html>
