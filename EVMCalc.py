@@ -46,6 +46,24 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<div style="
+    background: linear-gradient(90deg, #1a2a5e 0%, #2d4a9e 50%, #1a2a5e 100%);
+    border: 1px solid #3a5cc5;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+">
+    <div style="font-size: 0.7rem; letter-spacing: 0.18em; color: #a0b0e0; text-transform: uppercase; margin-bottom: 0.2rem;">
+        PMI Lahore Chapter
+    </div>
+    <div style="font-size: 1.25rem; font-weight: 700; color: #ffffff; letter-spacing: 0.04em;">
+        Symposium 2026
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 st.title("EVM Calculator")
 st.caption("Earned Value Management — key performance indicators at a glance")
 
